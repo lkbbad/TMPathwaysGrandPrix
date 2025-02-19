@@ -67,5 +67,17 @@ Participants are ranked within their **Pathways Level** based on:
 ---
 
 ## 📬 Contact
-For questions, reach out via [GitHub Issues](https://github.com/lkbbad/TMPathwaysGrandPrix/issues).
+For questions, reach out via [GitHub Issues](https://github.com/lkbbad/TMPathwaysGrandPrix/issues).  
 
+
+
+
+
+
+
+---
+<p style="text-align: left; font-size: 14px;">
+    <a href="https://www.flaticon.com/free-icons/sports-and-competition" title="sports and competition icons" target="_blank">
+        Sports and competition icons created by Freepik - Flaticon
+    </a>
+</p>
