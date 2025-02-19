@@ -8,7 +8,7 @@ The **Pathways Grand Prix Challenge Dashboard** is a Streamlit-powered web appli
 
 The dashboard makes tracking speech progress engaging and interactive by displaying race cars moving along a track based on progress.
 
-*Access application [here.](bit.ly/tm-pathwaysgrandprix)*
+*Access application [here.](https://bit.ly/tm-pathwaysgrandprix)*
 
 ---
 
