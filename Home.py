@@ -12,7 +12,7 @@ client = bigquery.Client(credentials=credentials, project=credentials.project_id
 def load_data():
     query = """
     SELECT Name, Level, Speeches_Left, Total_Speeches_Completed
-    FROM `YOUR_PROJECT_ID.toastmasters_race.race_progress`
+    FROM `tm-pathwaysgrandprix.toastmasters_race.race_progress`
     """
     df = client.query(query).to_dataframe()
     return df
