@@ -1,12 +1,14 @@
 # Pathways Grand Prix Challenge Dashboard
 
 ## 🏎️ Overview
-The **Pathways Grand Prix Challenge Dashboard** is a Streamlit-powered web application that visualizes participant progress in the **Softtalk Toastmasters Pathways Grand Prix Challenge (March 6th - May 1st, 2025)**. It pulls real-time data from **Google BigQuery** and displays:
+The **Pathways Grand Prix Challenge Dashboard** is a Streamlit-powered web application hosted via Google Cloud Run that visualizes participant progress in the **Softtalk Toastmasters Pathways Grand Prix Challenge (March 6th - May 1st, 2025)**. It pulls real-time data from Google BigQuery and displays:
 
 - **Race progress** for each participant with a visual race track 🏁
 - **Leaderboard rankings** for each Pathways Level 🏆
 
 The dashboard makes tracking speech progress engaging and interactive by displaying race cars moving along a track based on progress.
+
+*Access application [here.](bit.ly/tm-pathwaysgrandprix)*
 
 ---
 
