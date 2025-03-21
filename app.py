@@ -31,7 +31,7 @@ def get_base64_image(image_path):
 # Query BigQuery to Get Race Progress
 def load_data():
     query = """
-    SELECT Name, Level, Speeches_Left, Total_Speeches_Completed, Color
+    SELECT Name, Level, Speeches_Left, Total_Speeches_Completed, Color, Finishing_Position
     FROM `tm-pathwaysgrandprix.toastmasters_race.race_progress`
     """
     df = client.query(query).to_dataframe()
@@ -40,6 +40,32 @@ def load_data():
 # Load data into session state
 if "progress_data" not in st.session_state:
     st.session_state.progress_data = load_data()
+
+# Function to update finishing position in BigQuery
+def update_finishing_position(name, level, finishing_position):
+    query = f"""
+    UPDATE `tm-pathwaysgrandprix.toastmasters_race.race_progress`
+    SET Finishing_Position = {finishing_position}
+    WHERE Name = '{name}' AND Level = {level}
+    """
+    client.query(query).result()  # Wait for the query to complete
+
+# Function to assign finishing positions for finishers (only top 3 per level)
+def assign_finishing_positions(df):
+    for level in sorted(df["Level"].unique()):
+        # Filter racers who have finished (Speeches_Left == 0)
+        finishers = df[(df["Level"] == level) & (df["Speeches_Left"] == 0)]
+        # Sort finishers using Total_Speeches_Completed as a proxy for finishing order
+        finishers_sorted = finishers.sort_values("Total_Speeches_Completed", ascending=True)
+        for i, (index, row) in enumerate(finishers_sorted.iterrows(), start=1):
+            if i > 3:
+                break  # Only assign 1st, 2nd, and 3rd place
+            if pd.isna(row.get("Finishing_Position")):
+                update_finishing_position(row["Name"], row["Level"], i)
+                df.at[index, "Finishing_Position"] = i
+
+# Assign finishing positions if not already set
+assign_finishing_positions(st.session_state.progress_data)
 
 # UI: Dashboard Title
 st.set_page_config(page_title="Grand Prix", page_icon="🏎️")
@@ -52,21 +78,18 @@ st.image("tmlogo.png", width=200, )
 st.divider()
 st.header("🏁 Race Progress")
 
-# Load the racecar image
-racecar_path = "car.png"  # Ensure this file exists in your project directory
-if not os.path.exists(racecar_path):
-    st.error("⚠️ car.png not found! Make sure it's in the project directory.")
-
 if not st.session_state.progress_data.empty:
     sorted_data = st.session_state.progress_data.sort_values(["Level", "Speeches_Left"], ascending=[True, True])
     
     for _, row in sorted_data.iterrows():
-        if row["Total_Speeches_Completed"] == 0:
-            progress = 0  # No progress if they haven't given any speeches
-        elif row["Speeches_Left"] > 0:
-            progress = (row["Total_Speeches_Completed"] / 2)  # Partial progress before completing a level
-        else:  # Level is completed
-            progress = min(row["Total_Speeches_Completed"] / 2, 1)
+        # Calculate total speeches required (must be at least 2)
+        total_speeches_required = max(2, row["Speeches_Left"] + row["Total_Speeches_Completed"])
+
+        # Calculate progress based on how many speeches have been given
+        progress = row["Total_Speeches_Completed"] / total_speeches_required
+
+        # Ensure progress stays between 0 and 1
+        progress = max(0, min(progress, 1))
 
         racecar_position = progress * 100  # Convert to percentage for CSS positioning
 
@@ -95,6 +118,32 @@ if not st.session_state.progress_data.empty:
 else:
     st.write("No race progress yet. Stay tuned!")
 
+# New section: Display Race Winners (Finishing Positions)
+st.divider()
+st.header("🎉 Race Winners")
+
+levels = sorted(st.session_state.progress_data["Level"].unique())
+for level in levels:
+    # Filter finishers (those with Speeches_Left == 0)
+    finishers = st.session_state.progress_data[(st.session_state.progress_data["Level"] == level) &
+                                                 (st.session_state.progress_data["Speeches_Left"] == 0)]
+    
+    medal = None
+    if not finishers.empty:
+        st.subheader(f"Level {level} Winners")
+    #     st.write("No finishers yet for this level.")
+    # else:
+        # Sort by the assigned finishing position
+        finishers_sorted = finishers.sort_values("Finishing_Position")
+        for _, row in finishers_sorted.iterrows():
+            if row["Finishing_Position"] == 1:
+                medal = "🥇"
+            elif row["Finishing_Position"] == 2:
+                medal = "🥈"
+            elif row["Finishing_Position"] == 3:
+                medal = "🥉"
+            st.write(f"{medal} {row['Name']} has finished and secured {int(row['Finishing_Position'])} place!")
+
 # Leaderboard for each Pathways Level
 st.divider()
 st.header("🏆 Leaderboard by Pathways Level")
@@ -110,7 +159,6 @@ for level in levels:
 
     for idx, row in leaderboard.iterrows():
         st.write(f"🥇 {row['Name']} - {row['Total_Speeches_Completed']} speeches completed")
-
 
 st.markdown(
     """
